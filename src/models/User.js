@@ -12,7 +12,6 @@ class User {
         this.ismonitor = ismonitor;
     }
 
-
     validate() {
         const errors = [];
 
@@ -25,8 +24,8 @@ class User {
             errors.push('Email inválido.');
         }
 
-        if (typeof this.tokens !== 'string'){
-            errors.push('token invalido')
+        if (typeof this.tokens !== 'string') {
+            errors.push('Token inválido.');
         }
 
         const telefoneRegex = /^\+?[1-9]\d{1,14}$/;
@@ -35,37 +34,30 @@ class User {
         }
 
         if (!this.senha || this.senha.length < 6 || this.senha.length > 255) {
-            errors.push('A senha precisa ter entre 6 e 21 caracteres.');
+            errors.push('A senha precisa ter entre 6 e 255 caracteres.');
         }
 
         if (typeof this.niveldeconcientizacao !== 'number' || this.niveldeconcientizacao < 0 || this.niveldeconcientizacao > 5) {
             errors.push('Nível de conscientização deve ser um número entre 0 e 5.');
         }
 
-        if (errors.length > 0) {
-            return { valid: false, errors };
-        }
-
-        return { valid: true };
+        return errors.length > 0 ? { valid: false, errors } : { valid: true };
     }
-
 
     async save() {
         const password_hash = await argon2.hash(this.senha);
 
         const { data, error } = await supabase
-            .from('usuarios')
-            .insert([
-                {
-                    email: this.email,
-                    tokens: this.tokens,
-                    senha: password_hash,
-                    nome: this.nome,
-                    telefone: this.telefone,
-                    niveldeconcientizacao: this.niveldeconcientizacao,
-                    ismonitor: this.ismonitor
-                },
-            ])
+            .from('usuarios') // Certifique-se de que o nome da tabela está correto
+            .insert([{
+                email: this.email,
+                tokens: this.tokens,
+                senha: password_hash,
+                nome: this.nome,
+                telefone: this.telefone,
+                niveldeconcientizacao: this.niveldeconcientizacao,
+                ismonitor: this.ismonitor
+            }])
             .select();
 
         if (error) {
@@ -77,8 +69,8 @@ class User {
 
     async passwordIsValid(password) {
         const { data: user, error } = await supabase
-            .from('users')
-            .select('password_hash')
+            .from('usuarios') // Certifique-se de que o nome da tabela está correto
+            .select('senha') // Ajustado para usar o nome correto do campo
             .eq('email', this.email)
             .single();
 
@@ -86,8 +78,9 @@ class User {
             throw new Error('Usuário não encontrado ou erro ao buscar.');
         }
 
-        return argon2.verify(user.password_hash, password);
+        return argon2.verify(user.senha, password); // Ajuste para usar o nome correto do campo
     }
 }
 
 export default User;
+

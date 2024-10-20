@@ -38,11 +38,7 @@ class Receita {
             errors.push('Tema deve ser uma string não vazia.');
         }
 
-        if (errors.length > 0) {
-            return { valid: false, errors };
-        }
-
-        return { valid: true };
+        return { valid: errors.length === 0, errors };
     }
 }
 
